@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eden Garden — Le tuteur IA ancré dans vos cours</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream:     #F5E6D3;
+    --cream2:    #EDD9BC;
+    --cream3:    #E4CBA8;
+    --ink:       #2C1810;
+    --ink2:      #5C3D2E;
+    --ink3:      #8A6550;
+    --terra:     #C9784E;
+    --terra2:    #B8674A;
+    --terra3:    #A05535;
+    --gold:      #B8860B;
+    --gold2:     #C9960E;
+    --sand:      #D4B896;
+    --rust:      #8B3A2A;
+    --white:     #FDFAF6;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    background: var(--cream);
+    color: var(--ink);
+    overflow-x: hidden;
+  }
+
+  /* ── TEXTURE GRAIN ─────────────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.5;
+  }
+
+  /* ── HERO ──────────────────────────────────────────────── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-left {
+    padding: 4rem 3rem 4rem 5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-right {
+    background: var(--terra);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-right::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 40px,
+      rgba(255,255,255,0.03) 40px,
+      rgba(255,255,255,0.03) 41px
+    );
+  }
+
+  .hero-right-inner {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 3rem;
+  }
+
+  /* ── ORNEMENTS ─────────────────────────────────────────── */
+  .ornament {
+    color: var(--gold);
+    font-size: 0.85rem;
+    letter-spacing: 0.35em;
+    margin-bottom: 1.5rem;
+    opacity: 0.8;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .divider-gold {
+    width: 80px;
+    height: 1.5px;
+    background: var(--gold);
+    margin: 1.5rem 0;
+    animation: expandWidth 1s ease 0.3s both;
+  }
+
+  @keyframes expandWidth {
+    from { width: 0; opacity: 0; }
+    to { width: 80px; opacity: 1; }
+  }
+
+  /* ── TITRE ─────────────────────────────────────────────── */
+  .title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(3.5rem, 6vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1.0;
+    color: var(--ink);
+    animation: fadeUp 0.9s ease 0.1s both;
+  }
+
+  .title em {
+    font-style: italic;
+    color: var(--terra);
+    display: block;
+  }
+
+  .tagline {
+    font-size: 1.1rem;
+    color: var(--ink2);
+    line-height: 1.7;
+    font-style: italic;
+    max-width: 42ch;
+    animation: fadeUp 0.9s ease 0.25s both;
+  }
+
+  /* ── BOUTON DOWNLOAD ───────────────────────────────────── */
+  .download-wrap {
+    margin-top: 2.5rem;
+    animation: fadeUp 0.9s ease 0.4s both;
+  }
+
+  .btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--ink);
+    color: var(--cream);
+    text-decoration: none;
+    padding: 1.1rem 2.2rem;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border: 2px solid var(--ink);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+  }
+
+  .btn-download::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--terra);
+    transform: translateX(-101%);
+    transition: transform 0.3s ease;
+    z-index: 0;
+  }
+
+  .btn-download:hover::before { transform: translateX(0); }
+  .btn-download:hover { border-color: var(--terra); color: var(--white); }
+
+  .btn-download span, .btn-download svg { position: relative; z-index: 1; }
+
+  .btn-download svg {
+    width: 20px;
+    height: 20px;
+    animation: bounce 2s ease infinite 1.5s;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+  }
+
+  .dl-meta {
+    margin-top: 0.75rem;
+    font-size: 0.82rem;
+    color: var(--ink3);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── BADGE VERSION ─────────────────────────────────────── */
+  .version-badge {
+    display: inline-block;
+    background: var(--cream3);
+    border: 1px solid var(--sand);
+    color: var(--ink2);
+    font-size: 0.78rem;
+    padding: 0.25rem 0.75rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+    animation: fadeUp 0.8s ease 0.5s both;
+  }
+
+  /* ── HERO RIGHT CONTENT ────────────────────────────────── */
+  .hero-quote {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    font-style: italic;
+    color: var(--white);
+    line-height: 1.3;
+    opacity: 0;
+    animation: fadeUp 1s ease 0.6s forwards;
+  }
+
+  .hero-quote em {
+    color: var(--cream2);
+    font-style: normal;
+    display: block;
+    font-size: 0.55em;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    opacity: 0.7;
+  }
+
+  .hero-right-divider {
+    width: 40px;
+    height: 1.5px;
+    background: rgba(255,255,255,0.4);
+    margin: 1.5rem auto;
+    animation: expandWidth2 1s ease 0.8s both;
+  }
+  @keyframes expandWidth2 {
+    from { width: 0; opacity: 0; }
+    to { width: 40px; opacity: 1; }
+  }
+
+  .hero-features {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    opacity: 0;
+    animation: fadeUp 1s ease 0.9s forwards;
+  }
+
+  .hero-feature {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: rgba(253,250,246,0.85);
+    font-size: 0.9rem;
+    font-style: italic;
+  }
+
+  .hero-feature::before {
+    content: '◆';
+    color: var(--gold2);
+    font-size: 0.6rem;
+    flex-shrink: 0;
+  }
+
+  /* ── FEATURES SECTION ──────────────────────────────────── */
+  .features {
+    padding: 6rem 5rem;
+    background: var(--cream2);
+    position: relative;
+  }
+
+  .features::before {
+    content: '◆  ◇  ◆  ◇  ◆  ◇  ◆  ◇  ◆';
+    display: block;
+    text-align: center;
+    color: var(--gold);
+    font-size: 0.75rem;
+    letter-spacing: 0.4em;
+    margin-bottom: 3rem;
+    opacity: 0.6;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 3.5rem;
+  }
+
+  .section-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--terra);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .section-title em { font-style: italic; color: var(--terra); }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .feature-card {
+    background: var(--white);
+    padding: 2rem;
+    border: 1px solid var(--sand);
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(44,24,16,0.1);
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--terra);
+  }
+
+  .feature-card:nth-child(2)::before { background: var(--gold); }
+  .feature-card:nth-child(3)::before { background: var(--rust); }
+  .feature-card:nth-child(4)::before { background: var(--terra2); }
+  .feature-card:nth-child(5)::before { background: var(--gold2); }
+  .feature-card:nth-child(6)::before { background: var(--terra3); }
+
+  .feature-sym {
+    font-size: 1.2rem;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+  }
+
+  .feature-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 0.6rem;
+  }
+
+  .feature-desc {
+    font-size: 0.88rem;
+    color: var(--ink2);
+    line-height: 1.7;
+  }
+
+  /* ── RAG SECTION ───────────────────────────────────────── */
+  .rag-section {
+    padding: 6rem 5rem;
+    background: var(--ink);
+    color: var(--cream);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .rag-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--gold2);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .rag-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    font-style: italic;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    color: var(--cream);
+  }
+
+  .rag-desc {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: var(--sand);
+    font-style: italic;
+  }
+
+  .rag-divider {
+    width: 60px;
+    height: 1px;
+    background: var(--gold);
+    margin: 1.5rem 0;
+  }
+
+  .rag-pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .rag-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    border-left: 2px solid transparent;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    cursor: default;
+  }
+
+  .rag-step:hover {
+    border-color: var(--terra);
+    background: rgba(201,120,78,0.08);
+  }
+
+  .rag-step-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-style: italic;
+    color: var(--terra);
+    min-width: 2rem;
+    line-height: 1;
+    margin-top: 0.1rem;
+  }
+
+  .rag-step-title {
+    font-weight: 600;
+    color: var(--cream);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .rag-step-sub {
+    font-size: 0.8rem;
+    color: var(--ink3);
+    font-style: italic;
+  }
+
+  /* ── KILLER FEATURES ───────────────────────────────────── */
+  .killer {
+    padding: 6rem 5rem;
+    background: var(--cream);
+  }
+
+  .killer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    max-width: 1000px;
+    margin: 3rem auto 0;
+  }
+
+  .killer-card {
+    background: var(--white);
+    border: 1px solid var(--sand);
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+  }
+
+  .killer-card:hover { transform: translateY(-3px); }
+
+  .killer-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--terra);
+  }
+
+  .killer-card:last-child::after { background: var(--gold); }
+
+  .killer-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    font-style: italic;
+    font-weight: 900;
+    color: var(--cream3);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .killer-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 1rem;
+  }
+
+  .killer-divider {
+    width: 40px;
+    height: 1px;
+    background: var(--terra);
+    margin-bottom: 1rem;
+  }
+
+  .killer-card:last-child .killer-divider { background: var(--gold); }
+
+  .killer-desc {
+    font-size: 0.9rem;
+    color: var(--ink2);
+    line-height: 1.7;
+  }
+
+  .killer-quote {
+    margin-top: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--cream2);
+    border-left: 3px solid var(--terra);
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--rust);
+  }
+
+  .killer-card:last-child .killer-quote { border-color: var(--gold); }
+
+  /* ── DOWNLOAD CTA ──────────────────────────────────────── */
+  .cta {
+    padding: 7rem 5rem;
+    background: var(--terra);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 30px,
+      rgba(255,255,255,0.03) 30px,
+      rgba(255,255,255,0.03) 31px
+    );
+  }
+
+  .cta > * { position: relative; z-index: 1; }
+
+  .cta-ornament {
+    color: rgba(253,250,246,0.4);
+    font-size: 0.8rem;
+    letter-spacing: 0.4em;
+    margin-bottom: 1.5rem;
+  }
+
+  .cta-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-style: italic;
+    font-weight: 900;
+    color: var(--white);
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+
+  .cta-sub {
+    font-size: 1rem;
+    color: rgba(253,250,246,0.75);
+    font-style: italic;
+    margin-bottom: 3rem;
+  }
+
+  .btn-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--white);
+    color: var(--ink);
+    text-decoration: none;
+    padding: 1.3rem 3rem;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    border: 2px solid var(--white);
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-cta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    transform: translateX(-101%);
+    transition: transform 0.3s ease;
+    z-index: 0;
+  }
+
+  .btn-cta:hover::before { transform: translateX(0); }
+  .btn-cta:hover { color: var(--cream); border-color: var(--ink); }
+  .btn-cta span, .btn-cta svg { position: relative; z-index: 1; }
+
+  .btn-cta svg {
+    width: 22px; height: 22px;
+    animation: bounce 2s ease infinite 2s;
+  }
+
+  .cta-note {
+    margin-top: 1.5rem;
+    font-size: 0.82rem;
+    color: rgba(253,250,246,0.55);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── FOOTER ────────────────────────────────────────────── */
+  footer {
+    padding: 2.5rem 5rem;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-name {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--cream);
+  }
+
+  .footer-name em { color: var(--terra); }
+
+  .footer-copy {
+    font-size: 0.78rem;
+    color: var(--ink3);
+    letter-spacing: 0.05em;
+  }
+
+  .footer-ornament {
+    color: var(--gold);
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    opacity: 0.5;
+  }
+
+  /* ── ANIMATIONS ────────────────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── RESPONSIVE ────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-right { display: none; }
+    .hero-left { padding: 4rem 2rem; }
+    .features { padding: 4rem 2rem; }
+    .features-grid { grid-template-columns: 1fr; }
+    .rag-section { grid-template-columns: 1fr; padding: 4rem 2rem; gap: 2rem; }
+    .killer { padding: 4rem 2rem; }
+    .killer-grid { grid-template-columns: 1fr; }
+    .cta { padding: 5rem 2rem; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; padding: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HERO ───────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="ornament">◆  &nbsp;HEXAFLOW  &nbsp;◆  &nbsp;THINK SMART BUILD SMART  &nbsp;◆</div>
+    <div class="version-badge">v1.0 &nbsp;·&nbsp; Windows &nbsp;·&nbsp; ~400 MB</div>
+
+    <h1 class="title">
+      Eden<br>
+      <em>Garden</em>
+    </h1>
+
+    <div class="divider-gold"></div>
+
+    <p class="tagline">
+      Le premier tuteur IA ancré dans vos propres cours.
+      Un compartiment par matière, une IA qui ne répond
+      que depuis vos pages.
+    </p>
+
+    <div class="download-wrap">
+      <a href="REMPLACER_PAR_LIEN_GITHUB_RELEASE" class="btn-download" id="mainDl">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span>Télécharger Eden Garden</span>
+      </a>
+      <p class="dl-meta">Windows 10/11 &nbsp;·&nbsp; ~400 MB &nbsp;·&nbsp; Gratuit</p>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-right-inner">
+      <p class="hero-quote">
+        <em>◆ &nbsp; Pour qui ?</em>
+        Tout étudiant qui veut que l'IA connaisse ses cours,
+        pas ceux d'internet.
+      </p>
+      <div class="hero-right-divider"></div>
+      <div class="hero-features">
+        <div class="hero-feature">RAG — ancré dans vos documents exactement</div>
+        <div class="hero-feature">Un compartiment isolé par cours</div>
+        <div class="hero-feature">Scanner de cahier intégré</div>
+        <div class="hero-feature">Examen calé sur votre professeur</div>
+        <div class="hero-feature">Fonctionne avec Groq, Gemini, GPT, Claude</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ────────────────────────────────────────────── -->
+<section class="features">
+  <div class="section-header reveal">
+    <p class="section-label">◆ &nbsp; Fonctionnalités</p>
+    <h2 class="section-title">Tout ce qu'il vous faut<br><em>pour réussir vos examens</em></h2>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card reveal">
+      <div class="feature-sym">◆</div>
+      <h3 class="feature-title">Compartiments isolés</h3>
+      <p class="feature-desc">Un espace ChromaDB par cours. CSC 242, IT 240, MGT 110 — chacun son jardin. L'IA ne mélange jamais vos matières.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-sym">◇</div>
+      <h3 class="feature-title">Scanner de cahier</h3>
+      <p class="feature-desc">Photo depuis votre webcam ou mobile. OpenCV + EasyOCR transforment votre cahier en PDF indexé en 30 secondes.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-sym">◆</div>
+      <h3 class="feature-title">Quiz ancré page par page</h3>
+      <p class="feature-desc">Chaque question cite la page source exacte dans votre cours. Jamais de réponse inventée hors de vos documents.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-sym">◇</div>
+      <h3 class="feature-title">Profil professeur</h3>
+      <p class="feature-desc">Renseignez votre prof, son style de notation, la date de l'examen. L'IA se prépare pour CE professeur spécifiquement.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-sym">◆</div>
+      <h3 class="feature-title">Résumé intelligent</h3>
+      <p class="feature-desc">Résumé structuré par chapitres, détection des lacunes en temps réel, score de maîtrise par thème.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-sym">◇</div>
+      <h3 class="feature-title">Votre LLM, votre clé</h3>
+      <p class="feature-desc">Groq (gratuit), Gemini, GPT-4o ou Claude. Vous choisissez selon votre budget. Votre clé ne quitte jamais votre machine.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── RAG ──────────────────────────────────────────────────── -->
+<section class="rag-section">
+  <div class="reveal">
+    <p class="rag-label">◆ &nbsp; Technologie core</p>
+    <h2 class="rag-title">Retrieval-Augmented<br>Generation</h2>
+    <div class="rag-divider"></div>
+    <p class="rag-desc">
+      L'IA ne répond pas depuis sa mémoire générale — elle récupère
+      et cite vos documents exactement. Pas de fine-tuning, pas de
+      ré-entraînement. Chaque réponse est traçable jusqu'à la page source.
+    </p>
+  </div>
+
+  <div class="rag-pipeline reveal">
+    <div class="rag-step">
+      <div class="rag-step-num">01</div>
+      <div>
+        <div class="rag-step-title">Vos cours PDF</div>
+        <div class="rag-step-sub">Upload ou scan depuis votre téléphone</div>
+      </div>
+    </div>
+    <div class="rag-step">
+      <div class="rag-step-num">02</div>
+      <div>
+        <div class="rag-step-title">Chunking sémantique</div>
+        <div class="rag-step-sub">500 tokens avec overlap, métadonnées de page</div>
+      </div>
+    </div>
+    <div class="rag-step">
+      <div class="rag-step-num">03</div>
+      <div>
+        <div class="rag-step-title">Vectorisation</div>
+        <div class="rag-step-sub">sentence-transformers multilingue</div>
+      </div>
+    </div>
+    <div class="rag-step">
+      <div class="rag-step-num">04</div>
+      <div>
+        <div class="rag-step-title">Base vectorielle ChromaDB</div>
+        <div class="rag-step-sub">Collection isolée par compartiment</div>
+      </div>
+    </div>
+    <div class="rag-step">
+      <div class="rag-step-num">05</div>
+      <div>
+        <div class="rag-step-title">Réponse citée</div>
+        <div class="rag-step-sub">Source : p.12 — extrait exact affiché</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── KILLER FEATURES ─────────────────────────────────────── -->
+<section class="killer">
+  <div class="section-header reveal">
+    <p class="section-label">◆ &nbsp; Différenciateurs</p>
+    <h2 class="section-title">Deux features qu'<em>aucun outil</em><br>ne fait aujourd'hui</h2>
+  </div>
+
+  <div class="killer-grid">
+    <div class="killer-card reveal">
+      <div class="killer-num">01</div>
+      <h3 class="killer-title">Examen prédictif</h3>
+      <div class="killer-divider"></div>
+      <p class="killer-desc">
+        Eden Garden analyse les patterns de votre prof dans ses cours,
+        détecte son style de notation (QCM, cas pratiques, formules),
+        et génère un faux examen qui ressemble au vrai — calibré sur
+        CE professeur, pas sur un programme générique.
+      </p>
+      <div class="killer-quote">
+        « Réussir l'exam de CE prof, pas un exam générique. »
+      </div>
+    </div>
+    <div class="killer-card reveal">
+      <div class="killer-num">02</div>
+      <h3 class="killer-title">Détection de contradictions</h3>
+      <div class="killer-divider"></div>
+      <p class="killer-desc">
+        Quand deux cours définissent un même concept différemment,
+        Eden Garden le détecte, cite les deux sources exactes,
+        et vous alerte avant que ça vous coûte des points à l'examen.
+        Même les professeurs n'ont pas cet outil.
+      </p>
+      <div class="killer-quote">
+        « Vous protégez l'étudiant d'une confusion que le système crée lui-même. »
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA DOWNLOAD ────────────────────────────────────────── -->
+<section class="cta">
+  <p class="cta-ornament">◆  &nbsp;◇&nbsp;  ◆  &nbsp;◇&nbsp;  ◆  &nbsp;◇&nbsp;  ◆</p>
+  <h2 class="cta-title">Eden Garden</h2>
+  <p class="cta-sub">Parce que la connaissance mérite un jardin qui lui ressemble.</p>
+  <a href="REMPLACER_PAR_LIEN_GITHUB_RELEASE" class="btn-cta">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    <span>Télécharger — Gratuit</span>
+  </a>
+  <p class="cta-note">Windows 10 / 11 &nbsp;·&nbsp; ~400 MB &nbsp;·&nbsp; Installer inclus</p>
+</section>
+
+<!-- ── FOOTER ──────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-name"><em>Eden</em> Garden</div>
+  <div class="footer-ornament">◆  ◇  ◆  ◇  ◆</div>
+  <div class="footer-copy">© 2026 Hexaflow &nbsp;·&nbsp; Think Smart, Build Smart</div>
+</footer>
+
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('visible'), i * 80);
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
